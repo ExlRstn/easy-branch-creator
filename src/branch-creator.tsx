@@ -55,45 +55,157 @@ export class BranchCreator {
         navigationService.openNewWindow(branchUrl, "");
     }
 
+    //public async getBranchName(workItemTrackingRestClient: WorkItemTrackingRestClient, settingsDocument: SettingsDocument, workItemId: number, project: string, sourceBranchName: string): Promise<string> {
+    //    const workItem = await workItemTrackingRestClient.getWorkItem(workItemId, project, undefined, undefined, WorkItemExpand.Fields);
+    //    const workItemType = workItem.fields["System.WorkItemType"];
+
+    //    let branchNameTemplate = settingsDocument.defaultBranchNameTemplate;
+    //    if (workItemType in settingsDocument.branchNameTemplates && settingsDocument.branchNameTemplates[workItemType].isActive) {
+    //        branchNameTemplate = settingsDocument.branchNameTemplates[workItemType].value;
+    //    }
+
+    //    const tokenizer = new Tokenizer();
+    //    const tokens = tokenizer.getTokens(branchNameTemplate);
+
+    //    let branchName = branchNameTemplate;
+    //    tokens.forEach((token) => {
+    //        let workItemFieldName = token.replace('${', '').replace('}', '');
+    //        let workItemFieldValue = ""
+    //        if (workItemFieldName == "SourceBranchName") {
+    //            workItemFieldValue = sourceBranchName
+    //        }
+    //        else if (workItemFieldName == "SourceBranchNameTail") {
+    //            workItemFieldValue = sourceBranchName.replace(/.+\//, "")
+    //        }
+    //        else {
+    //            workItemFieldValue = workItem.fields[workItemFieldName];
+    //        }
+
+    //        if (workItemFieldValue) {
+    //            if (typeof workItemFieldValue.replace === 'function') {
+    //                workItemFieldValue = workItemFieldValue.replace(/[^a-zA-Z0-9]/g, settingsDocument.nonAlphanumericCharactersReplacement);
+    //            }
+    //        }
+    //        branchName = branchName.replace(token, workItemFieldValue);
+    //    });
+
+    //    if (settingsDocument.lowercaseBranchName) {
+    //        branchName = branchName.toLowerCase();
+    //    }
+
+    //    return branchName;
+    //}
+
     public async getBranchName(workItemTrackingRestClient: WorkItemTrackingRestClient, settingsDocument: SettingsDocument, workItemId: number, project: string, sourceBranchName: string): Promise<string> {
-        const workItem = await workItemTrackingRestClient.getWorkItem(workItemId, project, undefined, undefined, WorkItemExpand.Fields);
-        const workItemType = workItem.fields["System.WorkItemType"];
+        try {
 
-        let branchNameTemplate = settingsDocument.defaultBranchNameTemplate;
-        if (workItemType in settingsDocument.branchNameTemplates && settingsDocument.branchNameTemplates[workItemType].isActive) {
-            branchNameTemplate = settingsDocument.branchNameTemplates[workItemType].value;
-        }
 
-        const tokenizer = new Tokenizer();
-        const tokens = tokenizer.getTokens(branchNameTemplate);
+            console.log("Starting getBranchName method");
 
-        let branchName = branchNameTemplate;
-        tokens.forEach((token) => {
-            let workItemFieldName = token.replace('${', '').replace('}', '');
-            let workItemFieldValue = ""
-            if (workItemFieldName == "SourceBranchName") {
-                workItemFieldValue = sourceBranchName
+            // Fetch the work item
+            const workItem = await workItemTrackingRestClient.getWorkItem(workItemId, project, undefined, undefined, WorkItemExpand.Fields);
+            console.log("Fetched work item:", workItem);
+
+            const workItemType = workItem.fields["System.WorkItemType"];
+            console.log("Work item type:", workItemType);
+
+            var workItemTypeName = '';
+            var isTask = false;
+
+            if (workItemType === 'Bug') {
+                workItemTypeName = 'bugfix';
+                console.log("Work item type is Bug, setting workItemTypeName to 'bugfix'");
+            } else if (workItemType === 'Requirement') {
+                workItemTypeName = 'feature';
+                console.log("Work item type is Requirement, setting workItemTypeName to 'feature'");
+            } else if (workItemType === 'Task') {
+                const parentWorkItemId = Number(workItem.fields["System.Parent"]);
+                console.log("Work item type is Task, parentWorkItemId:", parentWorkItemId);
+
+                if (isNaN(parentWorkItemId) || parentWorkItemId === 0) {
+                    workItemTypeName = workItemType;
+                    console.log("Parent work item ID is invalid or zero, using work item type as workItemTypeName");
+                } else {
+                    const parentWorkItem = await workItemTrackingRestClient.getWorkItem(parentWorkItemId, project, undefined, undefined, WorkItemExpand.Fields);
+                    console.log("Fetched parent work item:", parentWorkItem);
+
+                    const parentWorkItemType = parentWorkItem.fields["System.WorkItemType"];
+                    console.log("Parent work item type:", parentWorkItemType);
+
+                    if (parentWorkItemType === 'Bug') {
+                        workItemTypeName = 'bugfix';
+                        console.log("Parent work item type is Bug, setting workItemTypeName to 'bugfix'");
+                    } else if (parentWorkItemType === 'Requirement') {
+                        workItemTypeName = 'feature';
+                        console.log("Parent work item type is Requirement, setting workItemTypeName to 'feature'");
+                    } else {
+                        workItemTypeName = workItemType;
+                        console.log("Parent work item type is neither Bug nor Requirement, using work item type as workItemTypeName");
+                    }
+                    isTask = true;
+                }
+            } else {
+                workItemTypeName = workItemType;
             }
-            else if (workItemFieldName == "SourceBranchNameTail") {
-                workItemFieldValue = sourceBranchName.replace(/.+\//, "")
-            }
-            else {
-                workItemFieldValue = workItem.fields[workItemFieldName];
+
+            var branchName = workItemTypeName;
+            console.log("Initial branchName:", branchName);
+
+            if (isTask) {
+                branchName = branchName + "/" + workItem.fields["System.Parent"] + "/tasks/" + workItem.fields["System.Id"] + "/";
+                console.log("Branch name for task:", branchName);
+            } else {
+                branchName = branchName + "/" + workItem.fields["System.Id"] + "/";
+                console.log("Branch name for non-task:", branchName);
             }
 
-            if (workItemFieldValue) {
-                if (typeof workItemFieldValue.replace === 'function') {
-                    workItemFieldValue = workItemFieldValue.replace(/[^a-zA-Z0-9]/g, settingsDocument.nonAlphanumericCharactersReplacement);
+            var title = workItem.fields["System.Title"].replace(/[^a-zA-Z0-9\s]+/g, ' ');
+            console.log("Title after removing special characters:", title);
+
+            title = title.trim();
+            console.log("Title after trimming:", title);
+
+            title = title.replace(/\s+/g, '-').toLowerCase();
+            console.log("Title after replacing spaces with hyphens and converting to lower case:", title);
+
+            branchName = branchName + title;
+            console.log("Final branch name before truncation:", branchName);
+
+            // Truncate while preserving whole words
+            const words = title.split('-');
+            console.log("Words from title:", words);
+
+            let result = '';
+            for (const word of words) {
+                if (!word.trim()) continue;
+                if ((result.length + word.length + 1) <= 50) {
+                    if (result) result += '-';
+                    result += word;
+                    console.log("Adding word to result:", word, "Result so far:", result);
+                } else {
+                    console.log("Truncation limit reached, breaking loop");
+                    break;
                 }
             }
-            branchName = branchName.replace(token, workItemFieldValue);
-        });
+            console.log("Result after truncation:", result);
 
-        if (settingsDocument.lowercaseBranchName) {
-            branchName = branchName.toLowerCase();
+            result = result.toLowerCase();
+            console.log("Result after lowercase:", result);
+
+            let branchNameTemplate = settingsDocument.defaultBranchNameTemplate;
+            console.log("Default branch name template:", branchNameTemplate);
+
+            if (workItemType in settingsDocument.branchNameTemplates && settingsDocument.branchNameTemplates[workItemType].isActive) {
+                branchNameTemplate = settingsDocument.branchNameTemplates[workItemType].value;
+                console.log("Branch name template from settingsDocument:", branchNameTemplate);
+            }
+
+            console.log("Returning branch name:", result);
+            return result;
+        } catch (error) {
+            console.error("An error occurred in getBranchName method:", error);
+            return 'Wrong branch name';
         }
-
-        return branchName;
     }
 
     private async createRef(gitRestClient: GitRestClient, repositoryId: string, commitId: string, branchName: string): Promise<void> {
