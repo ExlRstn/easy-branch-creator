@@ -21,6 +21,7 @@
     "publish:test": "npm run compile:dev && tfx extension publish --manifest-globs vss-extension.json --overrides-file configs/test.json --output-path out"
   },
   "dependencies": {
+    "aws4": "^1.13.2",
     "azure-devops-extension-api": "^1.152.0",
     "azure-devops-extension-sdk": "^2.0.7",
     "azure-devops-ui": "^1.152.2",
@@ -32,13 +33,10 @@
     "@types/react-dom": "^16.8.4",
     "@typescript-eslint/eslint-plugin": "^1.9.0",
     "@typescript-eslint/parser": "^1.9.0",
-    "base64-inline-loader": "^1.1.1",
     "copy-webpack-plugin": "^5.0.3",
-    "css-loader": "^2.1.1",
     "eslint": "^5.16.0",
     "eslint-config-prettier": "^4.3.0",
     "eslint-plugin-prettier": "^3.1.0",
-    "file-loader": "^3.0.1",
     "node-sass": "^7.0.3",
     "prettier": "^1.17.1",
     "rimraf": "^2.6.3",
@@ -47,8 +45,8 @@
     "tfx-cli": "^0.12.0",
     "ts-loader": "^6.0.1",
     "typescript": "^3.4.5",
-    "webpack": "^4.32.1",
-    "webpack-cli": "^3.3.2",
+    "webpack": "^5.94.0",
+    "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^3.4.1"
   }
 }

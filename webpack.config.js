@@ -26,7 +26,7 @@ module.exports = {
       "azure-devops-extension-sdk": path.resolve(
         "node_modules/azure-devops-extension-sdk"
       )
-    }    
+    }
   },
   stats: {
     warnings: false
