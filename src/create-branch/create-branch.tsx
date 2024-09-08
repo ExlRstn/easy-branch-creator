@@ -1,6 +1,7 @@
 import * as SDK from "azure-devops-extension-sdk";
 import { ILocationService, CommonServiceIds, IProjectPageService, IProjectInfo, IHostPageLayoutService } from "azure-devops-extension-api";
-import { CoreRestClient } from "azure-devops-extension-api/Core";
+// import { ILocationService, CommonServiceIds, IProjectPageService, IProjectInfo, IHostPageLayoutService, getClient } from "azure-devops-extension-api";
+// import { CoreRestClient } from "azure-devops-extension-api/Core";
 
 import { BranchCreator } from "../branch-creator";
 import { ISelectBranchDetailsResult } from "../branch-details-form/branch-details-form";
@@ -13,14 +14,14 @@ function createBranchFromWorkItem() {
             const projectService = await SDK.getService<IProjectPageService>(CommonServiceIds.ProjectPageService);
             const project: IProjectInfo | undefined = await projectService.getProject();
             if (project === undefined) {
-                console.warn("Project is unkown");
+                console.warn("Project is unknown");
                 return;
             }
 
-            const service = await SDK.getService<ILocationService>(CommonServiceIds.LocationService);
-            const hostBaseUrl = await service.getResourceAreaLocation(CoreRestClient.RESOURCE_AREA_ID);
+            //const service = await SDK.getService<ILocationService>(CommonServiceIds.LocationService);
+            //const hostBaseUrl = await service.getResourceAreaLocation(CoreRestClient.RESOURCE_AREA_ID);
             const host = SDK.getHost();
-            const gitBaseUrl = `${hostBaseUrl}${(hostBaseUrl.toLowerCase().indexOf(host.name.toLowerCase()) == -1 ? `${host.name}/` : "")}${project.name}/_git`;
+            // const gitBaseUrl = `${hostBaseUrl}${(hostBaseUrl.toLowerCase().indexOf(host.name.toLowerCase()) == -1 ? `${host.name}/` : "")}${project.name}/_git`;
 
             const branchCreator = new BranchCreator();
             const dialogService = await SDK.getService<IHostPageLayoutService>(CommonServiceIds.HostPageLayoutService);
@@ -35,10 +36,10 @@ function createBranchFromWorkItem() {
                     workItems: workItems
                 },
                 onClose: (result: ISelectBranchDetailsResult | undefined) => {
-                    console.log("Creating branch for result", result);
+                    //console.log("Creating branch for result", result);
                     if (result !== undefined) {
                         workItems.forEach((id: number) => {
-                            branchCreator.createBranch(id, result.repositoryId, result.sourceBranchName, result.projectId, gitBaseUrl);
+                            branchCreator.createBranch(id, result.repositoryId, result.sourceBranchName, result.projectId);
                         });
                     }
                 }

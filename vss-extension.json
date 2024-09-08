@@ -1,6 +1,6 @@
 {
   "manifestVersion": 1,
-  "version": "0.0.0.14",
+  "version": "0.0.0.15",
   "name": "PRGMT Branch Creator",
   "description": "Use PRGMT Branch Creator to create branches directly from within workitems using fields from the workitem for the branch name.",
   "publisher": "exlrstn",

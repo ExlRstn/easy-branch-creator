@@ -80,7 +80,7 @@ export class BranchSelect extends React.Component<IBranchSelectProps, IBranchSel
     }
 
     private async loadBranches() {
-        console.log("BranchSelect  loadBranches");
+        //console.log("BranchSelect  loadBranches");
         if (!!!this.props.repositoryId || !!!this.props.projectId) {
             return;
         }
