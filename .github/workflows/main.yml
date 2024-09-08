@@ -70,7 +70,7 @@ jobs:
         env:
           AZURE_DEVOPS_PAT: ${{ secrets.AZURE_DEVOPS_PAT }}
         run: |
-          filename=$(ls bluebasher.bluebasher-easy-branch-creator-test-*.vsix)
+          filename=$(ls exlrstn.exlrstn-easy-branch-creator-test-*.vsix)
           tfx extension publish --vsix $filename --auth-type pat --token $AZURE_DEVOPS_PAT
 
 
@@ -92,5 +92,5 @@ jobs:
         env:
           AZURE_DEVOPS_PAT: ${{ secrets.AZURE_DEVOPS_PAT }}
         run: |
-          filename=$(ls bluebasher.bluebasher-easy-branch-creator-*.vsix)
+          filename=$(ls exlrstn.exlrstn-easy-branch-creator-*.vsix)
           tfx extension publish --vsix $filename --auth-type pat --token $AZURE_DEVOPS_PAT

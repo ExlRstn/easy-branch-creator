@@ -9,6 +9,7 @@ function createBranchFromWorkItem() {
     "use strict";
     return {
         execute: async function (actionContext: any) {
+            console.log("createBranchFromWorkItem execute", createBranchFromWorkItem);
             const projectService = await SDK.getService<IProjectPageService>(CommonServiceIds.ProjectPageService);
             const project: IProjectInfo | undefined = await projectService.getProject();
             if (project === undefined) {
@@ -24,17 +25,20 @@ function createBranchFromWorkItem() {
             const branchCreator = new BranchCreator();
             const dialogService = await SDK.getService<IHostPageLayoutService>(CommonServiceIds.HostPageLayoutService);
             const workItems = getWorkItemIds(actionContext);
+
             dialogService.openCustomDialog<ISelectBranchDetailsResult | undefined>(SDK.getExtensionContext().id + ".branch-details-form", {
                 title: "Select Branch Details",
                 lightDismiss: false,
                 configuration: {
+                    organizationName: host.name,
                     projectName: project.name,
                     workItems: workItems
                 },
                 onClose: (result: ISelectBranchDetailsResult | undefined) => {
+                    console.log("Creating branch for result", result);
                     if (result !== undefined) {
                         workItems.forEach((id: number) => {
-                            branchCreator.createBranch(id, result.repositoryId, result.sourceBranchName, project, gitBaseUrl);
+                            branchCreator.createBranch(id, result.repositoryId, result.sourceBranchName, result.projectId, gitBaseUrl);
                         });
                     }
                 }

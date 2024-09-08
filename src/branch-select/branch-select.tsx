@@ -10,7 +10,7 @@ import { ITableColumn, SimpleTableCell } from "azure-devops-ui/Table";
 import { Icon } from "azure-devops-ui/Icon";
 
 export interface IBranchSelectProps {
-    projectName?: string;
+    projectId?: string;
     repositoryId?: string;
     onBranchChange: (newBranchName?: string) => void;
 }
@@ -29,6 +29,7 @@ export class BranchSelect extends React.Component<IBranchSelectProps, IBranchSel
     }
 
     public async componentDidMount() {
+        console.log("BranchSelect  componentDidMount");
         await this.loadBranches();
 
         this.setState(prevState => ({
@@ -79,17 +80,18 @@ export class BranchSelect extends React.Component<IBranchSelectProps, IBranchSel
     }
 
     private async loadBranches() {
-        if (!!!this.props.repositoryId || !!!this.props.projectName) {
+        console.log("BranchSelect  loadBranches");
+        if (!!!this.props.repositoryId || !!!this.props.projectId) {
             return;
         }
 
         const gitRestClient = getClient(GitRestClient);
-        const branches = await gitRestClient.getBranches(this.props.repositoryId, this.props.projectName);
+        const branches = await gitRestClient.getBranches(this.props.repositoryId, this.props.projectId);
         this.branches.removeAll();
         this.branches.push(...branches.map(t => { return { id: t.name, data: t.name, text: t.name } }));
 
         if (this.branches.length > 0) {
-            const repository = await gitRestClient.getRepository(this.props.repositoryId, this.props.projectName);
+            const repository = await gitRestClient.getRepository(this.props.repositoryId, this.props.projectId);
             let branchIndex = repository ? this.branches.value.findIndex((x) => x.data === repository.defaultBranch.replace('refs/heads/', '')) : 0;
             if (branchIndex === -1) {
                 branchIndex = 0;

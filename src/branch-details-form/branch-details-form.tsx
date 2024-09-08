@@ -12,15 +12,19 @@ import { BranchCreator } from "../branch-creator";
 import { StorageService } from "../storage-service";
 import { RepositorySelect } from "../repository-select/repository-select";
 import { BranchSelect } from "../branch-select/branch-select";
+import { ProjectSelect } from "../project-select/project-select";
 
 export interface ISelectBranchDetailsResult {
+    projectId: string;
     repositoryId: string;
     sourceBranchName: string;
 }
 
 interface ISelectBranchDetailsState {
+    organizationName?: string;
     projectName?: string;
     workItems: number[];
+    selectedProjectId?: string;
     selectedRepositoryId?: string;
     sourceBranchName?: string;
     ready: boolean;
@@ -34,15 +38,20 @@ class BranchDetailsForm extends React.Component<{}, ISelectBranchDetailsState> {
     }
 
     public componentDidMount() {
+        console.log("BranchDetailsForm componentDidMount");
+
         SDK.init();
+        console.log("BranchDetailsForm SDK.init()");
 
         SDK.ready().then(async () => {
             const config = SDK.getConfiguration();
             if (config.dialog) {
                 SDK.resize(undefined, 275);
             }
+            
+            console.log("BranchDetailsForm SDK.ready()");
 
-            this.setState({ projectName: config.projectName, workItems: config.workItems, selectedRepositoryId: config.initialValue, ready: false, branchNames: [] });
+            this.setState({ organizationName: config.organizationName, projectName: config.projectName, workItems: config.workItems, selectedProjectId: config.initialValue, selectedRepositoryId: config.initialValue, ready: false, branchNames: [] });
 
             await this.setBranchNames();
 
@@ -57,11 +66,14 @@ class BranchDetailsForm extends React.Component<{}, ISelectBranchDetailsState> {
         return (
             <div className="branch-details-form flex-column flex-grow rhythm-vertical-16">
                 <div className="flex-grow">
+                    <ProjectSelect 
+                        organizationName={this.state.organizationName}
+                        onProjectChange={(newProjectId) => this.onProjectChange(newProjectId)} />
                     <RepositorySelect
-                        projectName={this.state.projectName}
+                        projectId={this.state.selectedProjectId}
                         onRepositoryChange={(newRepositoryId) => this.onRepositoryChange(newRepositoryId)} />
                     <BranchSelect
-                        projectName={this.state.projectName}
+                        projectId={this.state.selectedProjectId}
                         repositoryId={this.state.selectedRepositoryId}
                         onBranchChange={(newBranchName) => this.onSourceBranchNameChange(newBranchName)} />
                     <p>Branch Name</p>
@@ -78,7 +90,8 @@ class BranchDetailsForm extends React.Component<{}, ISelectBranchDetailsState> {
                         disabled={!this.state.selectedRepositoryId}
                         primary={true}
                         text="Create Branch"
-                        onClick={() => this.close(this.state.selectedRepositoryId && this.state.sourceBranchName ? {
+                        onClick={() => this.close(this.state.selectedProjectId && this.state.selectedRepositoryId && this.state.sourceBranchName ? {
+                            projectId: this.state.selectedProjectId,
                             repositoryId: this.state.selectedRepositoryId,
                             sourceBranchName: this.state.sourceBranchName
                         } : undefined)}
@@ -99,7 +112,16 @@ class BranchDetailsForm extends React.Component<{}, ISelectBranchDetailsState> {
         }
     }
 
+    private onProjectChange(newProjectId?: string | undefined): void {
+        console.log("onProjectChange");
+        this.setState(prevState => ({
+            ...prevState,
+            selectedProjectId: newProjectId
+        }));
+    }
+
     private onRepositoryChange(newRepositoryId?: string | undefined): void {
+        console.log("onRepositoryChange");
         this.setState(prevState => ({
             ...prevState,
             selectedRepositoryId: newRepositoryId
@@ -107,6 +129,7 @@ class BranchDetailsForm extends React.Component<{}, ISelectBranchDetailsState> {
     }
 
     private onSourceBranchNameChange(newBranchName?: string | undefined): void {
+        console.log("onSourceBranchNameChange");
         this.setState(prevState => ({
             ...prevState,
             sourceBranchName: newBranchName

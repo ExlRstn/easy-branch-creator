@@ -1,7 +1,6 @@
 import * as React from "react";
-import { getClient } from "azure-devops-extension-api";
-import { GitRestClient } from "azure-devops-extension-api/Git";
-
+import { getClient, IProjectInfo } from "azure-devops-extension-api";
+import { CoreRestClient } from "azure-devops-extension-api/Core";
 import { EditableDropdown } from "azure-devops-ui/EditableDropdown";
 import { DropdownSelection } from "azure-devops-ui/Utilities/DropdownSelection";
 import { ObservableArray } from "azure-devops-ui/Core/Observable";
@@ -9,27 +8,27 @@ import { IListBoxItem } from "azure-devops-ui/ListBox";
 import { ITableColumn, SimpleTableCell } from "azure-devops-ui/Table";
 import { Icon } from "azure-devops-ui/Icon";
 
-export interface IRepositorySelectProps {
-    projectId?: string;
-    onRepositoryChange: (newRepositoryId?: string) => void;
+export interface IProjectSelectProps {
+    organizationName?: string;
+    onProjectChange: (newProjectId?: string) => void;
 }
 
-interface IRepositorySelectState {
+interface IProjectSelectState {
     ready: boolean;
 }
 
-export class RepositorySelect extends React.Component<IRepositorySelectProps, IRepositorySelectState> {
-    private repositories = new ObservableArray<IListBoxItem<string>>();
-    private repositorySelection = new DropdownSelection();
+export class ProjectSelect extends React.Component<IProjectSelectProps, IProjectSelectState> {
+    private projects = new ObservableArray<IListBoxItem<string>>();
+    private projectSelection = new DropdownSelection();
 
-    constructor(props: { onRepositoryChange: (newRepositoryId?: string) => void }) {
+    constructor(props: { onProjectChange: (newProjectId?: string) => void }) {
         super(props);
         this.state = { ready: false };
     }
 
     public async componentDidMount() {
-        console.log("RepositorySelect  componentDidMount");
-        await this.loadRepositories();
+        console.log("ProjectSelect  componentDidMount");
+        await this.loadProjects();
 
         this.setState(prevState => ({
             ...prevState,
@@ -37,22 +36,22 @@ export class RepositorySelect extends React.Component<IRepositorySelectProps, IR
         }));
     }
 
-    public async componentDidUpdate(prevProps: IRepositorySelectProps) {
-        if (prevProps.projectId !== this.props.projectId) {
-            await this.loadRepositories();
+    public async componentDidUpdate(prevProps: IProjectSelectProps) {
+        if (prevProps.organizationName !== this.props.organizationName) {
+            await this.loadProjects();
         }
     }
 
     public render(): JSX.Element {
         return (
             <div className="flex-column">
-                <label className="bolt-formitem-label body-m">Repository</label>
+                <label className="bolt-formitem-label body-m">Projects</label>
                 <EditableDropdown<string>
                     disabled={!this.state.ready}
-                    items={this.repositories}
-                    selection={this.repositorySelection}
+                    items={this.projects}
+                    selection={this.projectSelection}
                     onValueChange={(item?: IListBoxItem<string>) => {
-                        this.setSelectedRepositoryId(item?.data);
+                        this.setSelectedProjectId(item?.data);
                     }}
                     renderItem={(rowIndex: number, columnIndex: number, tableColumn: ITableColumn<IListBoxItem<string>>, tableItem: IListBoxItem<string>) => {
                         return (
@@ -78,24 +77,22 @@ export class RepositorySelect extends React.Component<IRepositorySelectProps, IR
         );
     }
 
-    private async loadRepositories() {
-        console.log("RepositorySelect  loadRepositories");
-        if (!!!this.props.projectId) {
+    private async loadProjects() {
+        console.log("ProjectSelect  loadProjects");
+        if (!!!this.props.organizationName) {
             return;
         }
+        const coreClient = getClient(CoreRestClient);
+        const projects: IProjectInfo[] = await coreClient.getProjects();
+        this.projects.push(...projects.map(t => { return { id: t.id, data: t.id, text: t.name } }));
 
-        const gitRestClient = getClient(GitRestClient);
-        const repositories = await gitRestClient.getRepositories(this.props.projectId);
-        this.repositories.removeAll();
-        this.repositories.push(...repositories.map(t => { return { id: t.id, data: t.id, text: t.name } }));
-
-        if (this.repositories.length > 0) {
-            this.setSelectedRepositoryId(repositories[0].id);
-            this.repositorySelection.select(0);
+        if (this.projects.length > 0) {
+            this.setSelectedProjectId(projects[0].id);
+            this.projectSelection.select(0);
         }
     }
 
-    private setSelectedRepositoryId(repositoryId?: string) {
-        this.props.onRepositoryChange(repositoryId);
+    private setSelectedProjectId(projectId?: string) {
+        this.props.onProjectChange(projectId);
     }
 }
