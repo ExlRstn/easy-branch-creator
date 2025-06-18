@@ -117,7 +117,7 @@ class SettingsHub extends React.Component<{}, ISettingsHubState> {
                     <HeaderTitleArea>
                         <HeaderTitleRow>
                             <HeaderTitle ariaLevel={3} className="text-ellipsis" titleSize={TitleSize.Large}>
-                                PRGMT Branch Creator
+                                PRGMT (New) Branch Creator
                             </HeaderTitle>
                         </HeaderTitleRow>
                     </HeaderTitleArea>

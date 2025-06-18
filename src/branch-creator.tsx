@@ -22,7 +22,15 @@ export class BranchCreator {
 
             const repository = await gitRestClient.getRepository(repositoryId, projectId);
 
-            const branchName = await this.getBranchName(workItemTrackingRestClient, settingsDocument, workItemId, projectId, sourceBranchName);
+            const branchName = await this.getNewLogicBranchName(workItemTrackingRestClient, settingsDocument, workItemId, projectId, sourceBranchName);
+            if (!branchName) {
+                console.warn("Branch name is empty, skipping branch creation");
+                globalMessagesSvc.addToast({
+                    duration: 3000,
+                    message: `Branch name could not be generated. Branch name is empty.`,
+                });
+                return;
+            }
             const branchUrl = `${repository.webUrl}?version=GB${encodeURI(branchName)}`;
 
             if (await this.branchExists(gitRestClient, repositoryId, projectId, branchName)) {
@@ -183,6 +191,88 @@ export class BranchCreator {
         return result;
     }
 
+    public async getNewLogicBranchName(workItemTrackingRestClient: WorkItemTrackingRestClient, settingsDocument: SettingsDocument, workItemId: number, project: string, sourceBranchName: string): Promise<string> {
+        console.log("Starting getNewLogicBranchName method");
+
+        var workItemTypeName = '';
+        var isTask = false;
+        var parentId = 0;
+
+        // Fetch the work item
+        const workItem = await workItemTrackingRestClient.getWorkItem(workItemId, project, undefined, undefined, WorkItemExpand.All);
+        const workItemType = workItem.fields["System.WorkItemType"];
+        if (workItemType === 'Bug') {
+            if (workItem.fields["System.Tags"].contains("#Technical")) {
+                workItemTypeName = 'development/tech';
+            } else {
+                workItemTypeName = 'development/bugfix';
+            }
+        } else if (workItemType === 'Requirement') {
+            if (workItem.fields["System.Tags"].contains("#Technical")) {
+                workItemTypeName = 'development/tech';
+            } else {
+                workItemTypeName = 'development/feature';
+            }
+        } else if (workItemType === 'Task') {
+            var parentWorkItemId = 0;
+            const parentRelation = workItem.relations?.find(relation => relation.rel === "System.LinkTypes.Hierarchy-Reverse");
+            if (parentRelation) {
+                const parentUrl = parentRelation.url;
+                const parentId = parentUrl.split('/').pop();
+                parentWorkItemId = Number(parentId);
+            }
+
+            if (isNaN(parentWorkItemId) || parentWorkItemId === 0) {
+                return "";
+            } else {
+                const parentWorkItem = await workItemTrackingRestClient.getWorkItem(parentWorkItemId, project, undefined, undefined, WorkItemExpand.Fields);
+                const parentWorkItemType = parentWorkItem.fields["System.WorkItemType"];
+                if (parentWorkItemType !== 'Bug' || parentWorkItemType !== 'Requirement') {
+                    return "";
+                }
+
+                isTask = true;
+                parentId = parentWorkItemId;
+                workItemTypeName = "tasks";
+            }
+        } else {
+            return "";
+        }
+
+        var branchName = workItemTypeName;
+
+        if (isTask) {
+            branchName = branchName + "/" + parentId + "/" + workItem.fields["System.Id"] + "-";
+        } else {
+            branchName = branchName + "/" + workItem.fields["System.Id"] + "/";
+        }
+
+        var title = workItem.fields["System.Title"].replace(/[^a-zA-Z0-9\s]+/g, ' ');
+
+        title = title.trim();
+
+        title = title.replace(/\s+/g, '-').toLowerCase();
+
+        branchName = branchName + title;
+
+        // Truncate while preserving whole words
+        const words = branchName.split('-');
+
+        let result = '';
+        for (const word of words) {
+            if (!word.trim()) continue;
+            if ((result.length + word.length + 1) <= 50) {
+                if (result) result += '-';
+                result += word;
+            } else {
+                // console.log("Truncation limit reached, breaking loop");
+                break;
+            }
+        }
+
+        result = result.toLowerCase();
+        return result;
+    }
 
     private async createRef(gitRestClient: GitRestClient, repositoryId: string, commitId: string, branchName: string): Promise<void> {
         const gitRefUpdate = {

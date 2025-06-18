@@ -1,5 +1,5 @@
 # Debugging
-To debug easy-branch-creator the following steps needs to be executed:
+To debug easy-branch-creator-new the following steps needs to be executed:
 
 1. Ensure [dependencies for node-gyp](https://github.com/nodejs/node-gyp#installation) are configured. 
 1. If you don't have one yet, [create a Visual Studio Marketplace Publisher](https://learn.microsoft.com/en-us/azure/devops/extend/publish/integration?view=azure-devops#create-a-publisher).
@@ -15,5 +15,5 @@ To debug easy-branch-creator the following steps needs to be executed:
 1. Run `npm start`
 1. Open https://localhost:3000
    - Accept the insecure connection.
-1. Go to  your Azure DevOps Organisation and use easy-branch-creator.
-1. Any modifications to easy-branch-creator will be hot-reloaded.
+1. Go to  your Azure DevOps Organisation and use easy-branch-creator-new.
+1. Any modifications to easy-branch-creator-new will be hot-reloaded.

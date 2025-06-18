@@ -1,7 +1,7 @@
 {
-  "name": "easy-branch-creator",
+  "name": "easy-branch-creator-new",
   "version": "1.0.0",
-  "description": "Use PRGMT Branch Creator to create branches directly from within workitems using fields from the workitem for the branch name.",
+  "description": "Use PRGMT (New) Branch Creator to create branches directly from within workitems using fields from the workitem for the branch name.",
   "author": "exlrstn",
   "license": "MIT",
   "repository": {

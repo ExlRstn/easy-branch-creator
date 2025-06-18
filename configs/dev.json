@@ -1,7 +1,8 @@
 {
-  "name": "PRGMT Branch Creator Dev",
-  "id": "exlrstn-easy-branch-creator-dev",
+  "name": "PRGMT (New) Branch Creator Dev",
+  "id": "exlrstn-easy-branch-creator-new-dev",
   "baseUri": "https://localhost:3000",
-  "version": "0.0.0.11",
+  "version": "0.0.0.2",
   "public": false
 }
+
