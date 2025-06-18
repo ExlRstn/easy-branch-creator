@@ -23,8 +23,7 @@ export class BranchCreator {
             const repository = await gitRestClient.getRepository(repositoryId, projectId);
 
             const branchName = await this.getNewLogicBranchName(workItemTrackingRestClient, settingsDocument, workItemId, projectId, sourceBranchName);
-            if (!branchName) {
-                console.warn("Branch name is empty, skipping branch creation");
+            if (!branchName || branchName.trim() === "") {
                 globalMessagesSvc.addToast({
                     duration: 3000,
                     message: `Branch name could not be generated. Branch name is empty.`,
@@ -48,7 +47,7 @@ export class BranchCreator {
 
             const branch = (await gitRestClient.getBranches(repositoryId, projectId)).find((x) => x.name === sourceBranchName);
             if (!branch) {
-                console.warn(`Branch ${sourceBranchName} not found`);
+                console.log(`Branch ${sourceBranchName} not found`);
                 return;
             }
 
@@ -202,13 +201,13 @@ export class BranchCreator {
         const workItem = await workItemTrackingRestClient.getWorkItem(workItemId, project, undefined, undefined, WorkItemExpand.All);
         const workItemType = workItem.fields["System.WorkItemType"];
         if (workItemType === 'Bug') {
-            if (workItem.fields["System.Tags"].contains("#Technical")) {
+            if (workItem.fields["System.Tags"] && workItem.fields["System.Tags"].includes("#Technical")) {
                 workItemTypeName = 'development/tech';
             } else {
                 workItemTypeName = 'development/bugfix';
             }
         } else if (workItemType === 'Requirement') {
-            if (workItem.fields["System.Tags"].contains("#Technical")) {
+            if (workItem.fields["System.Tags"] && workItem.fields["System.Tags"].includes("#Technical")) {
                 workItemTypeName = 'development/tech';
             } else {
                 workItemTypeName = 'development/feature';
@@ -227,7 +226,7 @@ export class BranchCreator {
             } else {
                 const parentWorkItem = await workItemTrackingRestClient.getWorkItem(parentWorkItemId, project, undefined, undefined, WorkItemExpand.Fields);
                 const parentWorkItemType = parentWorkItem.fields["System.WorkItemType"];
-                if (parentWorkItemType !== 'Bug' || parentWorkItemType !== 'Requirement') {
+                if (parentWorkItemType !== 'Bug' && parentWorkItemType !== 'Requirement') {
                     return "";
                 }
 
@@ -329,7 +328,7 @@ export class BranchCreator {
                 }
             }
         } catch (error) {
-            console.warn("Update WorkItem State failed", error);
+            console.log("Update WorkItem State failed", error);
         }
     }
 }

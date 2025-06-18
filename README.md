@@ -11,3 +11,8 @@ Pragmatic customization
 
 [create-branch-action]: marketplace/create-branch-action.png
 [settings]: marketplace/settings.png
+
+### Steps to update extension
+1. npm i --legacy-peer-deps
+2. npx webpack --mode production
+3. npx tfx extension create --output-path out/

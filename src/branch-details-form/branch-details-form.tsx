@@ -78,16 +78,32 @@ class BranchDetailsForm extends React.Component<{}, ISelectBranchDetailsState> {
                         onBranchChange={(newBranchName) => this.onSourceBranchNameChange(newBranchName)} />
                     <p>Branch Name</p>
                     <div className="branchNames flex-column scroll-auto">
-                        <div>
-                            <ul>
-                                {this.state.branchNames.map(b => <li key={b}>{b}</li>)}
-                            </ul>
-                        </div>
+                        {this.state.ready && (
+                            this.state.branchNames.length === 0 ? (
+                                <p style={{ color: "red", marginTop: "4px" }}>
+                                    Failed to generate branch name.
+                                </p>
+                            ) : (
+                                <div>
+                                    <ul>
+                                        {this.state.branchNames.map(b => (
+                                            <li key={b}>{b}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )
+                        )}
+                        {!this.state.ready && (
+                            <p style={{ color: "blue", marginTop: "4px" }}>
+                                Generating branch name...
+                            </p>
+                        )}
+
                     </div>
                 </div>
                 <ButtonGroup className="branch-details-form-button-bar ">
                     <Button
-                        disabled={!this.state.selectedRepositoryId}
+                        disabled={this.state.ready === false || !this.state.selectedRepositoryId || this.state.branchNames.length === 0}
                         primary={true}
                         text="Create Branch"
                         onClick={() => this.close(this.state.selectedProjectId && this.state.selectedRepositoryId && this.state.sourceBranchName ? {
@@ -145,8 +161,10 @@ class BranchDetailsForm extends React.Component<{}, ISelectBranchDetailsState> {
             const branchCreator = new BranchCreator();
             let branchNames: string[] = [];
             for await (const workItemId of this.state.workItems) {
-                const branchName = await branchCreator.getBranchName(workItemTrackingRestClient, settingsDocument, workItemId, this.state.projectName!, this.state.sourceBranchName!);
-                branchNames.push(branchName);
+                const branchName = await branchCreator.getNewLogicBranchName(workItemTrackingRestClient, settingsDocument, workItemId, this.state.projectName!, this.state.sourceBranchName!);
+                if (branchName && branchName.trim() !== "") {
+                    branchNames.push(branchName);
+                }
             }
 
             this.setState(prevState => ({

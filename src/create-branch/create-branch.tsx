@@ -14,7 +14,7 @@ function createBranchFromWorkItem() {
             const projectService = await SDK.getService<IProjectPageService>(CommonServiceIds.ProjectPageService);
             const project: IProjectInfo | undefined = await projectService.getProject();
             if (project === undefined) {
-                console.warn("Project is unknown");
+                console.log("Project is unknown");
                 return;
             }
 
