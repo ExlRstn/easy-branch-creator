@@ -212,7 +212,7 @@ export class BranchCreator {
             } else {
                 workItemTypeName = 'development/feature';
             }
-        } else if (workItemType === 'Task') {
+        } else if (workItemType?.includes('Task')) {
             var parentWorkItemId = 0;
             const parentRelation = workItem.relations?.find(relation => relation.rel === "System.LinkTypes.Hierarchy-Reverse");
             if (parentRelation) {
