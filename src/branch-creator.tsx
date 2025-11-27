@@ -99,7 +99,7 @@ export class BranchCreator {
         } else if (workItemType === 'Requirement') {
             workItemTypeName = 'feature';
             // console.log("Work item type is Requirement, setting workItemTypeName to 'feature'");
-        } else if (workItemType === 'Task') {
+        } else if (workItemType?.includes('Task')) {
             var parentWorkItemId = 0;
             const parentRelation = workItem.relations?.find(relation => relation.rel === "System.LinkTypes.Hierarchy-Reverse");
             if (parentRelation) {

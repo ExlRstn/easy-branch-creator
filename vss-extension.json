@@ -1,9 +1,11 @@
 {
   "manifestVersion": 1,
-  "version": "0.0.0.15",
+  "id": "exlrstn-easy-branch-creator",
+  "version": "0.0.3.16",
   "name": "PRGMT Branch Creator",
   "description": "Use PRGMT Branch Creator to create branches directly from within workitems using fields from the workitem for the branch name.",
   "publisher": "exlrstn",
+  "public": true,
   "demands": [
     "api-version/3.0"
   ],
