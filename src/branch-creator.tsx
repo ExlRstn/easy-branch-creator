@@ -202,15 +202,15 @@ export class BranchCreator {
         const workItemType = workItem.fields["System.WorkItemType"];
         if (workItemType === 'Bug') {
             if (workItem.fields["System.Tags"] && workItem.fields["System.Tags"].includes("#Technical")) {
-                workItemTypeName = 'development/tech';
+                workItemTypeName = 'dev/tech';
             } else {
-                workItemTypeName = 'development/bugfix';
+                workItemTypeName = 'dev/bugfix';
             }
         } else if (workItemType === 'Requirement') {
             if (workItem.fields["System.Tags"] && workItem.fields["System.Tags"].includes("#Technical")) {
-                workItemTypeName = 'development/tech';
+                workItemTypeName = 'dev/tech';
             } else {
-                workItemTypeName = 'development/feature';
+                workItemTypeName = 'dev/feature';
             }
         } else if (workItemType?.includes('Task')) {
             var parentWorkItemId = 0;
